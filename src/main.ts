@@ -1,20 +1,14 @@
 import { WechatyBuilder } from "wechaty";
 import QRCode from "qrcode";
-import { ChatGPTBot } from "./bot.js";
+import { ChatGPTBot } from "./chatgpt.js";
 const chatGPTBot = new ChatGPTBot();
 
-const bot =  WechatyBuilder.build({
+const bot = WechatyBuilder.build({
   name: "wechat-assistant", // generate xxxx.memory-card.json and save login data for the next login
-  puppetOptions: {
-    uos: true, // 开启uos协议
-  },
-  puppet: "wechaty-puppet-wechat",
 });
 // get a Wechaty instance
 
 async function main() {
-  const initializedAt = Date.now()
-  await chatGPTBot.startGPTBot();
   bot
     .on("scan", async (qrcode, status) => {
       const url = `https://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`;
@@ -26,15 +20,10 @@ async function main() {
     .on("login", async (user) => {
       console.log(`User ${user} logged in`);
       chatGPTBot.setBotName(user.name());
+      await chatGPTBot.startGPTBot();
     })
     .on("message", async (message) => {
-      if (
-        !chatGPTBot.ready || 
-        message.date().getTime() < initializedAt
-      ) {
-        return;
-      }
-      if (message.text().startsWith("/ping")) {
+      if (message.text().startsWith("/ping ")) {
         await message.say("pong");
         return;
       }
